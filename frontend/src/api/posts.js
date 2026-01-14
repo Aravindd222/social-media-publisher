@@ -1,26 +1,11 @@
-const API_URL = "http://localhost:8000";
+import API from "./auth.js";
 
-export async function createPost(data, token) {
-  const res = await fetch(`${API_URL}/posts/`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`
-    },
-    body: JSON.stringify(data)
-  });
+export const createPost = async (data) => {
+  const res = await API.post("/posts/", data);
+  return res.data;
+};
 
-  if (!res.ok) throw new Error("Post creation failed");
-  return res.json();
-}
-
-export async function getPosts(token) {
-  const res = await fetch(`${API_URL}/posts/`, {
-    headers: {
-      Authorization: `Bearer ${token}`
-    }
-  });
-
-  if (!res.ok) throw new Error("Fetch failed");
-  return res.json();
-}
+export const getPosts = async () => {
+  const res = await API.get("/posts/");
+  return res.data;
+};
