@@ -12,6 +12,7 @@ from app.services.oauth_service import (
     exchange_code_for_token,
     get_linkedin_profile_id,
 )
+from app.services.jwt_utils import decode_token
 
 router = APIRouter(prefix="/social", tags=["Social"])
 '''
@@ -23,14 +24,19 @@ def connect_social(platform : str):
 def oauth_callback(platform: str):
     return {"message": f"{platform} connected"}
 '''
+
 @router.get("/connect/linkedin")
-def connect_linkedin(user=Depends(get_current_user)):
-    return RedirectResponse(get_linkedin_auth_url(user.id))
+def connect_linkedin(token: str):
+    """
+    token = JWT token sent from frontend
+    """
+    auth_url = get_linkedin_auth_url(token)
+    return RedirectResponse(auth_url)
 
 
 @router.get("/callback/linkedin")
 def linkedin_callback(code: str, state: str, db: Session = Depends(get_db)):
-    user_id = int(state)   # THIS is the user
+    user_id = decode_token(state)
     token = exchange_code_for_token(code)
 
     linkedin_id = get_linkedin_profile_id(token)
@@ -53,4 +59,17 @@ def linkedin_callback(code: str, state: str, db: Session = Depends(get_db)):
         account.platform_user_id = linkedin_id
 
     db.commit()
-    return {"message": "LinkedIn connected"}
+    return RedirectResponse("http://localhost:5173/dashboard")
+
+@router.get("/status")
+def social_status(
+    user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    account = db.query(SocialAccount).filter(
+        SocialAccount.user_id == user.id,
+        SocialAccount.platform == "linkedin"
+    ).first()
+    return {
+        "linkedin_connected": bool(account)
+    }

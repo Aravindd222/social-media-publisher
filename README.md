@@ -38,5 +38,44 @@ This project performs **real OAuth with LinkedIn** and stores real access tokens
 
 ---
 
-## Project Structure
+
+---
+
+## Authentication Flow
+
+1. User registers with email and password
+2. Passwords are hashed using bcrypt
+3. User logs in and receives a JWT access token
+4. Protected routes require:
+        Authorization: Bearer <token>
+
+---
+
+## LinkedIn OAuth Flow
+
+1. User logs in and gets a JWT
+2. User calls `/social/connect/linkedin`
+3. Backend redirects to LinkedIn authorization page
+4. User approves access
+5. LinkedIn redirects back to:
+        /social/callback/linkedin
+6. Backend exchanges the code for an access token
+7. LinkedIn profile ID and token are stored in the database
+
+The LinkedIn app and company page are verified to allow publishing.
+
+---
+
+## Environment Variables
+
+
+
+
+
+
+
+
+
+
+
 

@@ -3,7 +3,6 @@ import CreatePost from "./CreatePost";
 import PostList from "./PostList";
 import { getSocialStatus } from "../api/posts";
 
-const API_BASE = "http://127.0.0.1:8000";
 
 export default function Dashboard({ onLogout }) {
   const [linkedinConnected, setLinkedinConnected] = useState(false);
@@ -17,9 +16,12 @@ export default function Dashboard({ onLogout }) {
       .finally(() => setLoading(false));
   }, []);
 
-  function connectLinkedIn() {
-    window.location.href = `${API_BASE}/social/connect/linkedin`;
-  }
+function connectLinkedIn() {
+  const token = localStorage.getItem("token");
+  window.location.href =
+    `http://localhost:8000/social/connect/linkedin?token=${token}`;
+}
+
 
   return (
     <div className="p-6 space-y-6">

@@ -15,7 +15,4 @@ export async function register(email, password) {
   });
   return res.data;
 }
-export default {
-  login,
-  register,
-};
+

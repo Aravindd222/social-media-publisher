@@ -6,13 +6,13 @@ LINKEDIN_AUTH_URL = "https://www.linkedin.com/oauth/v2/authorization"
 LINKEDIN_TOKEN_URL = "https://www.linkedin.com/oauth/v2/accessToken"
 LINKEDIN_PROFILE_URL = "https://api.linkedin.com/v2/me"
 
-def get_linkedin_auth_url(user_id: int):
+def get_linkedin_auth_url(state: str):
     params = {
         "response_type": "code",
         "client_id": settings.LINKEDIN_CLIENT_ID,
         "redirect_uri": settings.LINKEDIN_REDIRECT_URI,
         "scope": "r_liteprofile w_member_social",
-        "state": str(user_id)
+        "state": state,  #JWT TOKEN.
     }
     return LINKEDIN_AUTH_URL + "?" + urllib.parse.urlencode(params)
 
