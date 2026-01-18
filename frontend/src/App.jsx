@@ -1,18 +1,23 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Login from "./pages/Login";
-import CreatePost from "./pages/CreatePost";
-import PostList from "./pages/PostList";
+import Dashboard from "./pages/Dashboard";
 
 export default function App() {
-  const [loggedIn, setLoggedIn] = useState(!!localStorage.getItem("token"));
+  const [loggedIn, setLoggedIn] = useState(false);
 
-  if (!loggedIn) return <Login onLogin={() => setLoggedIn(true)} />;
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    setLoggedIn(!!token);
+  }, []);
 
-  return (
-    <>
-      <Login></Login>
-      <CreatePost />
-      <PostList />
-    </>
+  function handleLogout() {
+    localStorage.removeItem("token");
+    setLoggedIn(false);
+  }
+
+  return loggedIn ? (
+    <Dashboard onLogout={handleLogout} />
+  ) : (
+    <Login onLogin={() => setLoggedIn(true)} />
   );
 }
