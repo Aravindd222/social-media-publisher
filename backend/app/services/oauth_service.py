@@ -4,14 +4,14 @@ from app.config import settings
 
 LINKEDIN_AUTH_URL = "https://www.linkedin.com/oauth/v2/authorization"
 LINKEDIN_TOKEN_URL = "https://www.linkedin.com/oauth/v2/accessToken"
-LINKEDIN_PROFILE_URL = "https://api.linkedin.com/v2/me"
+LINKEDIN_PROFILE_URL = "https://api.linkedin.com/v2/userinfo"
 
 def get_linkedin_auth_url(state: str):
     params = {
         "response_type": "code",
         "client_id": settings.LINKEDIN_CLIENT_ID,
         "redirect_uri": settings.LINKEDIN_REDIRECT_URI,
-        "scope": "r_liteprofile w_member_social",
+        "scope": "openid profile email w_member_social",
         "state": state,  #JWT TOKEN.
     }
     return LINKEDIN_AUTH_URL + "?" + urllib.parse.urlencode(params)
@@ -35,8 +35,12 @@ def exchange_code_for_token(code: str):
 
 def get_linkedin_profile_id(access_token: str):
     response = requests.get(
-        LINKEDIN_PROFILE_URL,
-        headers={"Authorization": f"Bearer {access_token}"}
+        "https://api.linkedin.com/v2/userinfo",
+        headers={
+            "Authorization": f"Bearer {access_token}"
+        }
     )
     response.raise_for_status()
-    return response.json()["id"]
+    data = response.json()
+    return data["sub"]  # OIDC user id
+
