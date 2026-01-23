@@ -1,0 +1,27 @@
+# Web framework
+fastapi
+uvicorn[standard]
+
+# Database
+sqlalchemy
+psycopg2-binary
+alembic
+
+# Authentication & Security
+python-jose
+passlib[bcrypt]
+
+# Environment variables
+python-dotenv
+
+# HTTP & OAuth
+requests
+
+# File uploads
+python-multipart
+
+# Background jobs (future / optional but aligned with project)
+celery
+redis
+
+pydantic

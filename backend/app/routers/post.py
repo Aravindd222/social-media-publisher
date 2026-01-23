@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, File, UploadFile
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models.post import Post
-from app.schemas.post import PostCreate
+from app.schemas.post import PublishRequest
 from app.services.media_service import save_media
 from app.routers.auth import get_current_user
 
@@ -11,7 +11,7 @@ router = APIRouter(prefix="/posts", tags=["Posts"])
 
 @router.post("/")
 def create_post(
-    data: PostCreate,
+    data: PublishRequest,
     db: Session = Depends(get_db),
     user = Depends(get_current_user)
 ):

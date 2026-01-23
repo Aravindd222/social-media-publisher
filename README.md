@@ -1,61 +1,23 @@
-# Social Media Publisher
-
-A demo-ready social media publishing platform that allows users to log in, connect their LinkedIn account via OAuth, create posts, and publish them from a single backend system.
-
-This project focuses on **real backend engineering concepts** like authentication, OAuth, background jobs, and database design — not just basic CRUD APIs.
-
----
-
-## Features
-
-- User registration and login
-- Secure authentication using JWT
-- LinkedIn OAuth 2.0 integration
-- Verified LinkedIn Page association
-- Create and manage posts
-- Optional post scheduling
-- Media upload support
-- Designed for background publishing using Celery
-
-This project performs **real OAuth with LinkedIn** and stores real access tokens.
-
----
-
-## Tech Stack
-
-### Backend
-- FastAPI
-- PostgreSQL
-- SQLAlchemy
-- Alembic (migrations)
-- JWT Authentication
-- LinkedIn OAuth 2.0
-- Celery + Redis
-
-### Frontend
-- Swagger UI (demo)
-- Intended to be connected to a React frontend
-
----
 
 
----
+# 1️⃣ Create & Activate Virtual Environment
+* cmd - python -m venv myvenv
+* cmd - myvenv\Scripts\Activate.ps1
 
-## Authentication Flow
+# 2️⃣ Install Dependencies
+* cmd - pip install fastapi uvicorn sqlalchemy alembic psycopg2-binary \
+python-jose passlib[bcrypt] python-dotenv requests python-multipart urllib.parse  
 
-1. User registers with email and password
-2. Passwords are hashed using bcrypt
-3. User logs in and receives a JWT access token
-4. Protected routes require:
-        Authorization: Bearer <token>
+2. myvenv file
 
----
+3.Activate env file,cd backend and execute uvicorn app.main:app --reload
 
-## LinkedIn OAuth Flow
+4.Activate env file,cd frontend and execute npm run dev
 
+5.**LinkedIn OAuth Flow**
 1. User logs in and gets a JWT
 2. User calls `/social/connect/linkedin`
-3. Backend redirects to LinkedIn authorization page
+3. Backend redirects to LinkedIn authorization page and user login with login details.
 4. User approves access
 5. LinkedIn redirects back to:
         /social/callback/linkedin
@@ -63,10 +25,7 @@ This project performs **real OAuth with LinkedIn** and stores real access tokens
 7. LinkedIn profile ID and token are stored in the database
 
 The LinkedIn app and company page are verified to allow publishing.
-
----
-
-## Environment Variables
+8.Then user create post with path consist of token from linkedin and User can now publish or schedule posts via this platform.
 
 
 

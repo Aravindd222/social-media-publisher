@@ -7,27 +7,33 @@ export default function CreatePost() {
   const [loading, setLoading] = useState(false);
 
   async function handleSubmit(e) {
-    e.preventDefault();
+  e.preventDefault();
 
-    if (!content.trim()) {
-      alert("Post content cannot be empty");
-      return;
-    }
+  if (!content.trim()) {
+    alert("Post content cannot be empty");
+    return;
+  }
 
-    setLoading(true);
+  setLoading(true);
 
+  try {
     await createPost({
       platform: "linkedin",
       content,
       scheduled_at: scheduledAt || null,
     });
 
+    alert(scheduledAt ? "Post scheduled" : "Post published");
     setContent("");
     setScheduledAt("");
+  } catch (err) {
+    alert(err.message);
+  } finally {
     setLoading(false);
-
-    alert("Post submitted");
   }
+}
+
+
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3 border p-4 rounded">
@@ -49,9 +55,13 @@ export default function CreatePost() {
 
       <button
         disabled={loading}
-        className="bg-green-600 text-white px-4 py-2 rounded"
+        className="bg-green-600 text-white px-4 py-2 rounded disabled:opacity-60"
       >
-        {loading ? "Submitting..." : "Publish / Schedule"}
+        {loading
+          ? "Submitting..."
+          : scheduledAt
+          ? "Schedule Post"
+          : "Publish Now"}
       </button>
     </form>
   );

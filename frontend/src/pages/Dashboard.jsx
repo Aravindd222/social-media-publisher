@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import CreatePost from "./CreatePost";
 import PostList from "./PostList";
 import { getSocialStatus } from "../api/posts";
+import ConnectInstagram from "./ConnectInstagram";
+import CreateInstagramPost from "./CreateInstagramPost";
+
 
 
 export default function Dashboard({ onLogout }) {
@@ -62,7 +65,13 @@ function connectLinkedIn() {
       {/* Only allow post creation if connected */}
       {linkedinConnected && <CreatePost />}
 
-      <PostList />
+      {/*<PostList />*/}
+      <div className="border p-4 rounded">
+          <ConnectInstagram />
+      </div>
+      <div>
+        <CreateInstagramPost/>
+      </div>
     </div>
   );
 }

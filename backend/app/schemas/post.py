@@ -1,10 +1,18 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, HttpUrl
 from datetime import datetime
 from typing import Optional
 
-class PostCreate(BaseModel):
+class PublishRequest(BaseModel):
     platform: str
     content: str
     media_url: Optional[str] = None
     scheduled_at: Optional[datetime] = None
 
+
+class InstagramConnectRequest(BaseModel):
+    access_token: str
+    ig_user_id: str
+
+class InstagramPublishRequest(BaseModel):
+    image_url: HttpUrl
+    caption: str

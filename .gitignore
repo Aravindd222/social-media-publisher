@@ -1,5 +1,9 @@
 myvenv/
+venv/
 __pycache__/
 .env
+.env.*
 *.pyc
 node_modules/
+README.md
+
