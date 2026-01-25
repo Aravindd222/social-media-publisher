@@ -55,7 +55,7 @@ export default function CreatePost() {
 
       <button
         disabled={loading}
-        className="bg-green-600 text-white px-4 py-2 rounded disabled:opacity-60"
+        className="bg-green-600 text-white px-4 py-2 rounded disabled:opacity-60 hover:scale-110 hover:bg-green-700 transition duration-300 ease-in-out"
       >
         {loading
           ? "Submitting..."

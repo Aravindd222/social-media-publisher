@@ -48,7 +48,7 @@ export default function CreateInstagramPost() {
         className="w-full border p-2"
       />
 
-      <button className="bg-pink-600 text-white px-4 py-2 rounded">
+      <button className="bg-pink-600 text-white px-4 py-2 rounded hover:scale-110 hover:bg-pink-700 transition duration-300 ease-in-out">
         {loading ? "Posting..." : "Post"}
       </button>
     </form>

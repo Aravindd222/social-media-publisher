@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { connectInstagram } from "../api/social";
 
-export default function ConnectInstagram() {
+export default function ConnectInstagram({instagramConnected, onConnected}) {
   const [accessToken, setAccessToken] = useState("");
   const [userId, setUserId] = useState("");
   const [loading, setLoading] = useState(false);
@@ -22,21 +22,30 @@ export default function ConnectInstagram() {
         ig_user_id: userId,
       });
 
-      setConnected(true);
       setAccessToken("");
       setUserId("");
+      onConnected?.();
       alert("Instagram connected successfully");
     } catch (err) {
-      alert("Invalid Instagram credentials");
       console.error(err);
+      alert("Invalid Instagram credentials");
     } finally {
       setLoading(false);
     }
   }
 
-  if (connected) {
-    return <p className="text-green-600 font-medium">✅ Instagram Connected</p>;
-  }
+ if (instagramConnected) {
+  return (
+    <div className="flex items-center gap-2 text-green-600 font-medium">
+      <span className="relative flex h-3 w-3">
+        <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-pink-400 opacity-75"></span>
+        <span className="relative inline-flex h-3 w-3 rounded-full bg-pink-600"></span>
+      </span>
+      <span>Instagram Connected</span>
+    </div>
+  );
+}
+
 
   return (
     <form onSubmit={handleSubmit} className="border p-4 rounded space-y-3">

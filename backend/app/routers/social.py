@@ -5,7 +5,7 @@ import urllib.parse
 from app.database import get_db
 from app.models.social_account import SocialAccount
 from app.routers.auth import get_current_user
-from app.schemas.post import PublishRequest, InstagramConnectRequest
+from app.schemas.post import PublishRequest, InstagramConnectRequest,InstagramPostRequest
 import requests
 from sqlalchemy.orm import Session
 from app.services.publish_service import post_to_linkedin, create_media_container,publish_media
@@ -15,7 +15,7 @@ from app.services.oauth_service import (
     get_linkedin_profile_id,
 )
 from app.services.jwt_utils import decode_token
-
+import time
 router = APIRouter(prefix="/social", tags=["Social"])
 '''
 @router.get("/connect/{platform}")
@@ -68,12 +68,18 @@ def social_status(
     user = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    account = db.query(SocialAccount).filter(
+    linkedin_account = db.query(SocialAccount).filter(
         SocialAccount.user_id == user.id,
         SocialAccount.platform == "linkedin"
     ).first()
+
+    instagram_account = db.query(SocialAccount).filter(
+        SocialAccount.user_id == user.id,
+        SocialAccount.platform == "instagram"
+    ).first()
     return {
-        "linkedin_connected": bool(account)
+        "linkedin_connected": bool(linkedin_account),
+        "instagram_connected": bool(instagram_account),
     }
 
 @router.post("/publish")
@@ -129,7 +135,6 @@ def connect_instagram(
     db.commit()
     return {"status":"instagram connected"}
 
-from app.schemas.post import InstagramPublishRequest
 from app.services.publish_service import (
     create_media_container,
     publish_media,
@@ -137,7 +142,7 @@ from app.services.publish_service import (
 
 @router.post("/publish/instagram")
 def publish_instagram(
-    data: InstagramPublishRequest,
+    data: InstagramPostRequest,
     user = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
@@ -155,7 +160,7 @@ def publish_instagram(
         image_url=data.image_url,
         caption=data.caption,
     )
-
+    time.sleep(2)
     publish_media(
         access_token=account.access_token,
         ig_user_id=account.platform_user_id,

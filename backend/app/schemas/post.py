@@ -13,6 +13,6 @@ class InstagramConnectRequest(BaseModel):
     access_token: str
     ig_user_id: str
 
-class InstagramPublishRequest(BaseModel):
+class InstagramPostRequest(BaseModel):
     image_url: HttpUrl
     caption: str
