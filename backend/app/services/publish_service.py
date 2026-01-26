@@ -83,9 +83,9 @@ def publish_media(access_token: str, ig_user_id: str, creation_id: str):
 
     res = requests.post(
         url,
-        json={"creation_id": creation_id},
-        headers={"Authorization": f"Bearer {access_token}"},
-    )
+        params={"creation_id": creation_id, "access_token": access_token,
+            }
+        )
 
     print("PUBLISH:", res.status_code, res.text)
     res.raise_for_status()

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from fastapi.responses import RedirectResponse
 from app.config import settings
 import urllib.parse
@@ -139,9 +139,13 @@ from app.services.publish_service import (
     create_media_container,
     publish_media,
 )
+from fastapi import UploadFile, File, Form
+from app.services.storage import save_image_and_get_url
+
 @router.post("/publish/instagram")
 def publish_instagram(
-    data: InstagramPublishRequest,
+    caption: str = Form(...),
+    image: UploadFile = File(...),
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
@@ -151,22 +155,31 @@ def publish_instagram(
     ).first()
 
     if not account:
-        raise HTTPException(400, "Instagram not connected")
+        raise HTTPException(status_code=400, detail="Instagram not connected")
 
-    container_id = create_media_container(
-        account.access_token,
-        account.platform_user_id,
-        str(data.image_url),
-        data.caption,
+    # 1️⃣ Upload to Cloudinary
+    image_url = save_image_and_get_url(image)
+
+    # 2️⃣ Create media container
+    creation_id = create_media_container(
+        access_token=account.access_token,
+        ig_user_id=account.platform_user_id,
+        image_url=image_url,
+        caption=caption,
     )
 
-    wait_for_container(account.access_token, container_id)
+    # 3️⃣ WAIT until Instagram finishes processing
+    wait_for_container(account.access_token, creation_id)
 
+    # 4️⃣ Publish
     publish_media(
-        account.access_token,
-        account.platform_user_id,
-        container_id,
+        access_token=account.access_token,
+        ig_user_id=account.platform_user_id,
+        creation_id=creation_id,
     )
 
     return {"status": "published"}
+
+
+
 

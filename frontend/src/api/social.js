@@ -5,5 +5,6 @@ export async function connectInstagram(data) {
 }
 
 
-export const publishInstagram = (data) =>
-  API.post("/social/publish/instagram", data);
+export const publishInstagram = (formData) =>
+  API.post("/social/publish/instagram", formData);
+

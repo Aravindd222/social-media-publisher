@@ -11,10 +11,14 @@ class Settings(BaseSettings):
     LINKEDIN_CLIENT_ID: Optional[str] = None
     LINKEDIN_CLIENT_SECRET: Optional[str] = None
     LINKEDIN_REDIRECT_URI: Optional[str] = None
+    CLOUDINARY_CLOUD_NAME: str
+    CLOUDINARY_API_KEY: str
+    CLOUDINARY_API_SECRET: str
 
     REDIS_BROKER_URL: str = "redis://localhost:6379/0"
 
     class Config:
         env_file = ".env"
+        extra = "forbid"
 
 settings = Settings()

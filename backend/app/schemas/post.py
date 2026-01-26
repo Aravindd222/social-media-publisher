@@ -1,4 +1,4 @@
-from pydantic import BaseModel, HttpUrl
+from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
 
@@ -14,5 +14,4 @@ class InstagramConnectRequest(BaseModel):
     ig_user_id: str
 
 class InstagramPublishRequest(BaseModel):
-    image_url: HttpUrl
     caption: str
