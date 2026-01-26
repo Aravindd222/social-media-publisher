@@ -17,7 +17,7 @@ def post_to_linkedin(token: str, linkedin_user_id: str, text: str):
         "specificContent": {
             "com.linkedin.ugc.ShareContent": {
             "shareCommentary": {
-                "text": "Hello from my app"
+                "text": text
             },
             "shareMediaCategory": "NONE"
         }
