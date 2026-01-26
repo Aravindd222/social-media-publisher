@@ -37,34 +37,57 @@ def post_to_linkedin(token: str, linkedin_user_id: str, text: str):
 
 
 def create_media_container(access_token: str, ig_user_id: str, image_url: str, caption: str):
-    media_url = f"https://graph.facebook.com/v19.0/{ig_user_id}/media"
+    url = f"https://graph.facebook.com/v23.0/{ig_user_id}/media"
 
-    payload = {
-        "image_url": str(image_url),
+    params = {
+        "image_url": image_url,
         "caption": caption,
         "access_token": access_token,
     }
 
-    res = requests.post(media_url, data=payload)
-    print("Instagram API Response:", res.status_code, res.text)
-    if res.status_code >= 400:
-        return {"error": res.json()}
+    res = requests.post(url, params=params)
+    print("CREATE:", res.status_code, res.text)
     res.raise_for_status()
-    return res.json()["id"]  # creation_id
 
+    return res.json()["id"]
+
+def wait_for_container(access_token: str, container_id: str):
+    status_url = f"https://graph.facebook.com/v23.0/{container_id}"
+
+    for _ in range(10):
+        res = requests.get(
+            status_url,
+            params={
+                "fields": "status_code",
+                "access_token": access_token,
+            },
+        )
+        res.raise_for_status()
+
+        status = res.json().get("status_code")
+        print("STATUS:", status)
+
+        if status == "FINISHED":
+            return
+
+        if status in ("ERROR", "EXPIRED"):
+            raise Exception(f"Container failed: {status}")
+
+        time.sleep(3)
+
+    raise TimeoutError("Container not ready")
 
 
 def publish_media(access_token: str, ig_user_id: str, creation_id: str):
-    time.sleep(5)
-    publish_url = f"https://graph.facebook.com/v19.0/{ig_user_id}/media_publish"
+    url = f"https://graph.facebook.com/v23.0/{ig_user_id}/media_publish"
 
-    payload = {
-        "creation_id": creation_id,
-        "access_token": access_token,
-    }
+    res = requests.post(
+        url,
+        json={"creation_id": creation_id},
+        headers={"Authorization": f"Bearer {access_token}"},
+    )
 
-    res = requests.post(publish_url, data=payload)
-    print("Instagram publish:", res.status_code,res.text)
+    print("PUBLISH:", res.status_code, res.text)
     res.raise_for_status()
-    
+
     return res.json()

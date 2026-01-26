@@ -5,10 +5,10 @@ import urllib.parse
 from app.database import get_db
 from app.models.social_account import SocialAccount
 from app.routers.auth import get_current_user
-from app.schemas.post import PublishRequest, InstagramConnectRequest,InstagramPostRequest
+from app.schemas.post import PublishRequest, InstagramConnectRequest,InstagramPublishRequest
 import requests
 from sqlalchemy.orm import Session
-from app.services.publish_service import post_to_linkedin, create_media_container,publish_media
+from app.services.publish_service import post_to_linkedin, create_media_container,publish_media, wait_for_container
 from app.services.oauth_service import (
     get_linkedin_auth_url,
     exchange_code_for_token,
@@ -139,12 +139,11 @@ from app.services.publish_service import (
     create_media_container,
     publish_media,
 )
-
 @router.post("/publish/instagram")
 def publish_instagram(
-    data: InstagramPostRequest,
-    user = Depends(get_current_user),
-    db: Session = Depends(get_db)
+    data: InstagramPublishRequest,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db),
 ):
     account = db.query(SocialAccount).filter(
         SocialAccount.user_id == user.id,
@@ -154,17 +153,20 @@ def publish_instagram(
     if not account:
         raise HTTPException(400, "Instagram not connected")
 
-    creation_id = create_media_container(
-        access_token=account.access_token,
-        ig_user_id=account.platform_user_id,
-        image_url=data.image_url,
-        caption=data.caption,
+    container_id = create_media_container(
+        account.access_token,
+        account.platform_user_id,
+        str(data.image_url),
+        data.caption,
     )
-    time.sleep(2)
+
+    wait_for_container(account.access_token, container_id)
+
     publish_media(
-        access_token=account.access_token,
-        ig_user_id=account.platform_user_id,
-        creation_id=creation_id,
+        account.access_token,
+        account.platform_user_id,
+        container_id,
     )
 
     return {"status": "published"}
+
