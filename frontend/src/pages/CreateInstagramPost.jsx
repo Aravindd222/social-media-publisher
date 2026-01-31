@@ -5,6 +5,7 @@ export default function CreateInstagramPost() {
   const [caption, setCaption] = useState("");
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
+  const [scheduledAt, setScheduledAt] = useState(""); 
   const [loading, setLoading] = useState(false);
   const fileRef = useRef(null);
 
@@ -20,13 +21,28 @@ export default function CreateInstagramPost() {
     formData.append("caption", caption);
     formData.append("image", image);
 
+    // ✅ only append if user selected date
+    if (scheduledAt) {
+      const selected = new Date(scheduledAt);
+      const now = new Date();
+
+    if (selected <= now) {
+      alert("Please choose a future time");
+      return;
+  }
+    const utcISOString = selected.toISOString();
+      formData.append("scheduled_at", utcISOString);
+}
+
+
     setLoading(true);
     try {
       await publishInstagram(formData);
-      alert("Posted to Instagram");
+      alert(scheduledAt ? "Instagram post scheduled" : "Posted to Instagram");
       setCaption("");
       setImage(null);
       setPreview(null);
+      setScheduledAt("");
     } catch (err) {
       alert("Instagram publish failed");
       console.error(err);
@@ -74,12 +90,25 @@ export default function CreateInstagramPost() {
         className="w-full border rounded p-2"
       />
 
+      {/* ✅ Scheduling input (same as LinkedIn) */}
+      <input
+        type="datetime-local"
+        min = {new Date().toISOString().slice(0,16)}
+        value={scheduledAt}
+        onChange={(e) => setScheduledAt(e.target.value)}
+        className="w-full border rounded p-2"
+      />
+
       {/* Submit */}
       <button
         disabled={loading}
         className="bg-pink-600 text-white px-4 py-2 rounded disabled:opacity-50"
       >
-        {loading ? "Posting..." : "Post to Instagram"}
+        {loading
+          ? "Processing..."
+          : scheduledAt
+          ? "Schedule Instagram Post"
+          : "Post to Instagram"}
       </button>
     </form>
   );

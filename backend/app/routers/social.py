@@ -141,7 +141,49 @@ from app.services.publish_service import (
 )
 from fastapi import UploadFile, File, Form
 from app.services.storage import save_image_and_get_url
+from app.tasks.instagram import publish_instagram_task
+from datetime import timezone
+from dateutil import parser
+from app.models.post import Post
 
+
+@router.post("/publish/instagram")
+def publish_instagram(
+    caption: str = Form(...),
+    image: UploadFile = File(...),
+    scheduled_at: str | None = Form(None),
+    user = Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    image_url = save_image_and_get_url(image)
+
+    eta = None
+    if scheduled_at:
+        # EXPECT ISO UTC ONLY
+        eta = parser.isoparse(scheduled_at).astimezone(timezone.utc)
+
+        post = Post(
+            user_id=user.id,
+            platform="instagram",
+            content=caption,
+            media_url=image_url,
+            scheduled_at=eta,
+            status="scheduled" if eta else "pending",
+        )
+
+        db.add(post)
+        db.commit()
+        db.refresh(post)
+        
+        if eta:
+            publish_instagram_task.apply_async(args=[post.id], eta=eta)
+            return {"status": "scheduled", "run_at": eta}
+        publish_instagram_task.delay(post.id)
+        return {"status": "publishing"}
+
+
+
+'''
 @router.post("/publish/instagram")
 def publish_instagram(
     caption: str = Form(...),
@@ -180,6 +222,5 @@ def publish_instagram(
 
     return {"status": "published"}
 
-
-
+'''
 

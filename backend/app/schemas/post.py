@@ -15,3 +15,4 @@ class InstagramConnectRequest(BaseModel):
 
 class InstagramPublishRequest(BaseModel):
     caption: str
+    scheduled_at: datetime | None = None

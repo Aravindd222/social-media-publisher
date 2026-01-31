@@ -29,7 +29,7 @@ The LinkedIn app and company page are verified to allow publishing.
 
 
 
-
+celery -A app.celery_app.celery_app worker -l info
 
 
 
