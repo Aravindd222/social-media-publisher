@@ -5,9 +5,21 @@ export default function CreateInstagramPost() {
   const [caption, setCaption] = useState("");
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState(null);
-  const [scheduledAt, setScheduledAt] = useState(""); 
+  const [scheduledAt, setScheduledAt] = useState("");
   const [loading, setLoading] = useState(false);
   const fileRef = useRef(null);
+
+  function handleImageSelect(file) {
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      alert("Only image files are allowed");
+      return;
+    }
+
+    setImage(file);
+    setPreview(URL.createObjectURL(file));
+  }
 
   async function handleSubmit(e) {
     e.preventDefault();
@@ -21,40 +33,45 @@ export default function CreateInstagramPost() {
     formData.append("caption", caption);
     formData.append("image", image);
 
-    // ✅ only append if user selected date
     if (scheduledAt) {
       const selected = new Date(scheduledAt);
       const now = new Date();
 
-    if (selected <= now) {
-      alert("Please choose a future time");
-      return;
-  }
-    const utcISOString = selected.toISOString();
-      formData.append("scheduled_at", utcISOString);
-}
+      if (isNaN(selected.getTime())) {
+        alert("Invalid date");
+        return;
+      }
 
+      if (selected <= now) {
+        alert("Please choose a future time");
+        return;
+      }
+
+      // 🔥 Backend expects UTC ISO
+      formData.append("scheduled_at", selected.toISOString());
+    }
 
     setLoading(true);
     try {
       await publishInstagram(formData);
       alert(scheduledAt ? "Instagram post scheduled" : "Posted to Instagram");
+
       setCaption("");
       setImage(null);
       setPreview(null);
       setScheduledAt("");
     } catch (err) {
-      alert("Instagram publish failed");
       console.error(err);
+      alert("Instagram publish failed");
     } finally {
       setLoading(false);
     }
   }
 
-  function handleImageSelect(file) {
-    setImage(file);
-    setPreview(URL.createObjectURL(file));
-  }
+  // Correct local-time min for datetime-local
+  const nowLocal = new Date();
+  nowLocal.setMinutes(nowLocal.getMinutes() - nowLocal.getTimezoneOffset());
+  const minDateTime = nowLocal.toISOString().slice(0, 16);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
@@ -90,16 +107,15 @@ export default function CreateInstagramPost() {
         className="w-full border rounded p-2"
       />
 
-      {/* ✅ Scheduling input (same as LinkedIn) */}
+      {/* Scheduling */}
       <input
         type="datetime-local"
-        min = {new Date().toISOString().slice(0,16)}
+        min={minDateTime}
         value={scheduledAt}
         onChange={(e) => setScheduledAt(e.target.value)}
         className="w-full border rounded p-2"
       />
 
-      {/* Submit */}
       <button
         disabled={loading}
         className="bg-pink-600 text-white px-4 py-2 rounded disabled:opacity-50"

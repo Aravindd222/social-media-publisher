@@ -1,10 +1,23 @@
 import API from "./api";
 
-export async function connectInstagram(data) {
-  return API.post("/social/connect/instagram", data);
+/**
+ * Connect Instagram account
+ * @param {{ access_token: string, ig_user_id: string }}
+ */
+export async function connectInstagram(payload) {
+  const res = await API.post("/social/connect/instagram", payload);
+  return res.data;
 }
 
-
-export const publishInstagram = (formData) =>
-  API.post("/social/publish/instagram", formData);
-
+/**
+ * Publish or schedule Instagram post
+ * @param {FormData} formData
+ */
+export async function publishInstagram(formData) {
+  const res = await API.post("/social/publish/instagram", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return res.data;
+}
