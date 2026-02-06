@@ -25,55 +25,57 @@ export default function Dashboard({ onLogout }) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <div className="max-w-6xl mx-auto px-6 py-8 space-y-10">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900 to-black text-white">
+      
+      <div className="max-w-6xl mx-auto px-6 py-10 space-y-12">
 
         {/* HEADER */}
         <header className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-semibold text-slate-900">
+            <h1 className="text-3xl font-bold tracking-tight">
               Dashboard
             </h1>
-            <p className="text-sm text-slate-500">
+            <p className="text-indigo-300 text-sm mt-1">
               Manage your connected accounts and publish posts
             </p>
           </div>
 
           <button
             onClick={onLogout}
-            className="inline-flex items-center rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 transition "
+            className="bg-red-600 hover:bg-red-700 px-5 py-2 rounded-lg text-sm font-medium shadow-lg transition"
           >
             Logout
           </button>
         </header>
 
         {/* CONNECTED ACCOUNTS */}
-        <section className="space-y-4">
-          <h2 className="text-lg font-semibold text-slate-900">
+        <section className="space-y-6">
+          <h2 className="text-xl font-semibold text-indigo-200">
             🔗 Connected Accounts
           </h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
             {/* LinkedIn */}
-            <div className="rounded-xl bg-white shadow-sm border border-slate-200 p-6 space-y-3">
-              <h3 className="font-medium text-slate-900">LinkedIn</h3>
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6 shadow-xl space-y-3">
+              <h3 className="font-semibold text-lg">LinkedIn</h3>
 
               {loading ? (
-                <p className="text-sm text-slate-500">
+                <p className="text-gray-300 text-sm">
                   Checking connection…
                 </p>
               ) : linkedinConnected ? (
-                <p className="text-green-600 font-medium">
+                <p className="text-green-400 font-medium">
                   ✅ Connected
                 </p>
               ) : (
                 <>
-                  <p className="text-red-600 font-medium">
+                  <p className="text-red-400 font-medium">
                     ❌ Not connected
                   </p>
                   <button
                     onClick={connectLinkedIn}
-                    className="mt-2 inline-flex rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition"
+                    className="mt-2 bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-lg text-sm font-medium transition"
                   >
                     Connect LinkedIn
                   </button>
@@ -82,28 +84,30 @@ export default function Dashboard({ onLogout }) {
             </div>
 
             {/* Instagram */}
-            <div className="rounded-xl bg-white shadow-sm border border-slate-200 p-6 space-y-3">
-              <h3 className="font-medium text-slate-900">Instagram</h3>
+            <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6 shadow-xl space-y-3">
+              <h3 className="font-semibold text-lg">Instagram</h3>
 
               <ConnectInstagram
                 instagramConnected={instagramConnected}
                 onConnected={() => setInstagramConnected(true)}
               />
             </div>
+
           </div>
         </section>
 
-        {/* PUBLISH */}
-        <section className="space-y-4">
-          <h2 className="text-lg font-semibold text-slate-900">
+        {/* PUBLISH SECTION */}
+        <section className="space-y-6">
+          <h2 className="text-xl font-semibold text-indigo-200">
             📝 Create & Publish
           </h2>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
             {/* LinkedIn Publishing */}
             {linkedinConnected && (
-              <div className="rounded-xl bg-white shadow-sm border border-slate-200 p-6">
-                <h3 className="font-medium text-slate-900 mb-3">
+              <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6 shadow-xl">
+                <h3 className="font-semibold text-lg mb-4">
                   Post to LinkedIn
                 </h3>
                 <CreatePost />
@@ -112,15 +116,17 @@ export default function Dashboard({ onLogout }) {
 
             {/* Instagram Publishing */}
             {instagramConnected && (
-              <div className="rounded-xl bg-white shadow-sm border border-slate-200 p-6">
-                <h3 className="font-medium text-slate-900 mb-3">
+              <div className="bg-white/10 backdrop-blur-md border border-white/20 rounded-xl p-6 shadow-xl">
+                <h3 className="font-semibold text-lg mb-4">
                   Post to Instagram
                 </h3>
                 <CreateInstagramPost />
               </div>
             )}
+
           </div>
         </section>
+
       </div>
     </div>
   );

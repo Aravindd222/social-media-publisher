@@ -42,12 +42,12 @@ export default function Login({ onLogin }) {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-indigo-900 to-black flex items-center justify-center">
       <form
         onSubmit={handleSubmit}
         className="w-full max-w-md bg-white border rounded-lg shadow-sm p-8 space-y-6"
       >
-        <div>
+        <div  className="bg-white/95 backdrop-blur-md p-8 rounded-xl shadow-2xl w-96">
           <h1 className="text-2xl font-semibold">
             {mode === "login" ? "Sign in" : "Create account"}
           </h1>
