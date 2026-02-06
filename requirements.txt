@@ -25,3 +25,4 @@ celery
 redis
 
 pydantic
+pydantic-settings
