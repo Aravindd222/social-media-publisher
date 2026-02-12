@@ -44,7 +44,7 @@ npm run dev
 ### **Start Celery Worker**
 
 ```bash
-celery -A app.celery_app.celery_app worker -l info
+celery -A app.celery_app.celery_app worker --loglevel=info --pool=solo
 ```
 
 Ensure Redis server is running before starting Celery.
@@ -202,7 +202,7 @@ User → Login → Dashboard
 | Task Queue | Celery |
 | Broker | Redis |
 | Authentication | JWT + OAuth 2.0 |
-| Database | PostgreSQL / SQLite |
+| Database | PostgreSQL |
 
 ---
 
