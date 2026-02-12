@@ -15,7 +15,10 @@ from app.services.oauth_service import (
     get_linkedin_profile_id,
 )
 from app.services.jwt_utils import decode_token
-import time
+from datetime import datetime, timezone
+from app.models.post import Post
+from app.tasks.linkedin import publish_linkedin_task
+
 router = APIRouter(prefix="/social", tags=["Social"])
 '''
 @router.get("/connect/{platform}")
@@ -105,6 +108,40 @@ def publish_post(
 
 
 
+
+
+@router.post("/schedule/linkedin")
+def schedule_linkedin_post(
+    data: PublishRequest,
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    if not data.scheduled_at:
+        raise HTTPException(status_code=400, detail="scheduled_at required")
+
+    eta = data.scheduled_at.astimezone(timezone.utc)
+
+    post = Post(
+        user_id=user.id,
+        platform="linkedin",
+        content=data.content,
+        media_url=None,
+        scheduled_at=eta,
+        status="scheduled",
+    )
+
+    db.add(post)
+    db.commit()
+    db.refresh(post)
+
+    publish_linkedin_task.apply_async(args=[post.id], eta=eta)
+
+    return {"status": "scheduled", "run_at": eta}
+
+
+
+
+
 #INSTAGRAM
 
 
@@ -135,18 +172,15 @@ def connect_instagram(
     db.commit()
     return {"status":"instagram connected"}
 
-from app.services.publish_service import (
-    create_media_container,
-    publish_media,
-)
+
 from fastapi import UploadFile, File, Form
 from app.services.storage import save_image_and_get_url
 from app.tasks.instagram import publish_instagram_task
-from datetime import timezone
+
 from dateutil import parser
-from app.models.post import Post
 
 
+'''
 @router.post("/publish/instagram")
 def publish_instagram(
     caption: str = Form(...),
@@ -181,9 +215,9 @@ def publish_instagram(
         publish_instagram_task.delay(post.id)
         return {"status": "publishing"}
 
-
-
 '''
+
+
 @router.post("/publish/instagram")
 def publish_instagram(
     caption: str = Form(...),
@@ -222,5 +256,5 @@ def publish_instagram(
 
     return {"status": "published"}
 
-'''
+
 

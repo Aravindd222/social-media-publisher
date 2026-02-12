@@ -4,7 +4,7 @@ celery_app = Celery(
     "social_publisher",
     broker="redis://localhost:6379/0",
     backend="redis://localhost:6379/0",
-    include=['app.tasks.instagram']
+    include=['app.tasks.instagram','app.tasks.linkedin']
 )
 
 celery_app.autodiscover_tasks(["app.tasks"])
