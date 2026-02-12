@@ -6,172 +6,172 @@ This project demonstrates real-world backend architecture using FastAPI, Celery,
 
 ---
 
-## 1. Environment Setup
+## **1. Environment Setup**
 
-### Create and Activate Virtual Environment (Windows)
+### **Create and Activate Virtual Environment (Windows)**
 
 ```bash
 python -m venv myvenv
 myvenv\Scripts\Activate.ps1
-Install Backend Dependencies
-pip install fastapi uvicorn sqlalchemy alembic psycopg2-binary python-jose passlib[bcrypt] python-dotenv requests python-multipart
+```
 
-2. Running the Application
-Start Backend Server
+### **Install Backend Dependencies**
+
+```bash
+pip install -r requirements.txt
+```
+
+---
+
+## **2. Running the Application**
+
+### **Start Backend Server**
+
+```bash
 myvenv\Scripts\Activate.ps1
 cd backend
 uvicorn app.main:app --reload
+```
 
-Start Frontend
+### **Start Frontend**
+
+```bash
 cd frontend
 npm install
 npm run dev
+```
 
-Start Celery Worker
+### **Start Celery Worker**
+
+```bash
 celery -A app.celery_app.celery_app worker -l info
-
+```
 
 Ensure Redis server is running before starting Celery.
 
-3. LinkedIn OAuth Flow
+---
+
+## **3. LinkedIn OAuth Flow**
 
 The application implements a secure OAuth 2.0 authorization flow.
 
-Flow Steps
+### **Flow Steps**
 
-User logs in and receives a JWT.
+1. User logs in and receives a JWT.  
+2. User calls `/social/connect/linkedin`.  
+3. Backend redirects user to LinkedIn authorization page.  
+4. User logs in and approves access.  
+5. LinkedIn redirects back to:
 
-User calls /social/connect/linkedin.
-
-Backend redirects user to LinkedIn authorization page.
-
-User logs in and approves access.
-
-LinkedIn redirects back to:
-
+```
 /social/callback/linkedin
+```
 
+6. Backend exchanges authorization code for an access token.  
+7. LinkedIn profile ID and access token are stored in the database.  
+8. Verified LinkedIn App and Company Page allow publishing.  
+9. User can now publish or schedule posts using stored credentials.  
 
-Backend exchanges authorization code for an access token.
+---
 
-LinkedIn profile ID and access token are stored in the database.
+## **4. Core Features**
 
-Verified LinkedIn App and Company Page allow publishing.
+### **Authentication System**
 
-User can now publish or schedule posts using stored credentials.
+- User registration and login  
+- JWT-based authentication  
+- Password hashing with bcrypt  
+- Protected API routes  
 
-4. Core Features
-Authentication System
+### **LinkedIn Integration**
 
-User registration and login
+- OAuth 2.0 authorization flow  
+- Secure token storage  
+- Immediate publishing  
+- Scheduled publishing via Celery  
 
-JWT-based authentication
-
-Password hashing with bcrypt
-
-Protected API routes
-
-LinkedIn Integration
-
-OAuth 2.0 authorization flow
-
-Secure token storage
-
-Immediate publishing
-
-Scheduled publishing via Celery
-
-Instagram Integration
+### **Instagram Integration**
 
 Users connect using:
 
-ig_user_id
-
-access_token
+- `ig_user_id`  
+- `access_token`  
 
 Features include:
 
-Credential storage in database
+- Credential storage in database  
+- Immediate publishing  
+- Scheduled publishing via background tasks  
 
-Immediate publishing
+### **Post Scheduling System**
 
-Scheduled publishing via background tasks
+#### **Endpoint**
 
-Post Scheduling System
-
-Endpoint
-
+```
 /social/schedule/{platform}
+```
 
+#### **Request Payload**
 
-Request Payload
+- `content`  
+- `media_url`  
+- `scheduled_at` (ISO 8601 format)  
 
-content
+#### **Execution Flow**
 
-media_url
+1. API validates request.  
+2. Task queued via Celery.  
+3. Redis acts as message broker.  
+4. Worker executes publish task at scheduled time.  
+5. Post is automatically published.  
 
-scheduled_at (ISO 8601 format)
+---
 
-Execution Flow
-
-API validates request.
-
-Task queued via Celery.
-
-Redis acts as message broker.
-
-Worker executes publish task at scheduled time.
-
-Post is automatically published.
-
-5. Dashboard UI
+## **5. Dashboard UI**
 
 Built using Material Tailwind Dashboard template.
 
 Includes:
 
-Responsive layout
+- Responsive layout  
+- Connected account status indicators  
+- Conditional UI rendering  
+- Publishing forms  
+- Datetime-based scheduling input  
 
-Connected account status indicators
+---
 
-Conditional UI rendering
+## **6. Backend Architecture**
 
-Publishing forms
+### **Framework**
+FastAPI  
 
-Datetime-based scheduling input
+### **Background Processing**
+Celery (task queue)  
+Redis (message broker)  
 
-6. Backend Architecture
-Framework
+### **Database**
+PostgreSQL or SQLite (environment-based configuration)  
 
-FastAPI
+### **Security**
+JWT Authentication  
+OAuth 2.0 (LinkedIn)  
 
-Background Processing
+---
 
-Celery (task queue)
-Redis (message broker)
+## **7. Frontend Stack**
 
-Database
+- React (Vite)  
+- Material Tailwind  
+- Tailwind CSS  
+- React Router v6  
+- Axios  
 
-PostgreSQL or SQLite (environment-based configuration)
+---
 
-Security
+## **8. High-Level System Flow**
 
-JWT Authentication
-OAuth 2.0 (LinkedIn)
-
-7. Frontend Stack
-
-React (Vite)
-
-Material Tailwind
-
-Tailwind CSS
-
-React Router v6
-
-Axios
-
-8. High-Level System Flow
+```
 User → Login → Dashboard
       → Connect Social Account
       → Create Post
@@ -187,45 +187,47 @@ User → Login → Dashboard
           → Redis Broker
           → Worker Executes at Scheduled Time
           → Post Published
+```
 
-9. Technology Stack
-Layer	Technology
-Frontend	React + Vite
-UI Framework	Material Tailwind
-Styling	Tailwind CSS
-Backend	FastAPI
-Task Queue	Celery
-Broker	Redis
-Authentication	JWT + OAuth 2.0
-Database	PostgreSQL / SQLite
-10. System Design Highlights
+---
 
-Decoupled frontend and backend
+## **9. Technology Stack**
 
-Non-blocking API using background workers
+| Layer | Technology |
+|-------|------------|
+| Frontend | React + Vite |
+| UI Framework | Material Tailwind |
+| Styling | Tailwind CSS |
+| Backend | FastAPI |
+| Task Queue | Celery |
+| Broker | Redis |
+| Authentication | JWT + OAuth 2.0 |
+| Database | PostgreSQL / SQLite |
 
-OAuth-based third-party integration
+---
 
-Distributed task execution
+## **10. System Design Highlights**
 
-Clean REST API structure
+- Decoupled frontend and backend  
+- Non-blocking API using background workers  
+- OAuth-based third-party integration  
+- Distributed task execution  
+- Clean REST API structure  
+- Scalable architecture pattern  
 
-Scalable architecture pattern
+---
 
-11. Future Improvements
+## **11. Future Improvements**
 
-LinkedIn refresh token handling
+- LinkedIn refresh token handling  
+- Webhook-based publishing confirmations  
+- Media storage integration (AWS S3)  
+- Analytics dashboard  
+- Dockerized deployment  
+- CI/CD pipeline  
 
-Webhook-based publishing confirmations
+---
 
-Media storage integration (AWS S3)
-
-Analytics dashboard
-
-Dockerized deployment
-
-CI/CD pipeline
-
-12. Author
+## **12. Author**
 
 Developed as a full-stack distributed system to simulate real-world SaaS publishing workflows and demonstrate production-grade backend architecture.
