@@ -3,6 +3,7 @@
     "tailwind": "^4.0.0"
   },
   "dependencies": {
+    "@material-tailwind/react": "^2.1.10",
     "tailwindcss": "^4.1.18"
   }
 }
