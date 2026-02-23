@@ -13,10 +13,10 @@ export default function Topbar({ loggedIn, onLogout }) {
   };
 
   return (
-    <div className="h-16 bg-white shadow flex items-center justify-end px-6">
+    <div className="h-16 bg-white shadow flex items-center justify-end px-6 ">
       <button
         onClick={handleClick}
-        className="text-gray-500 hover:text-black font-medium"
+        className="text-gray-500 hover:text-black font-medium border border-gray-500 hover:border-black px-4 py-2 rounded"
       >
         {loggedIn ? "Sign Out" : "Sign In"}
       </button>

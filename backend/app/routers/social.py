@@ -8,7 +8,7 @@ from app.routers.auth import get_current_user
 from app.schemas.post import PublishRequest, InstagramConnectRequest,InstagramPublishRequest
 import requests
 from sqlalchemy.orm import Session
-from app.services.publish_service import post_to_linkedin, create_media_container,publish_media, wait_for_container
+from app.services.publish_service import post_to_linkedin, create_media_container,publish_media, wait_for_container, publish_linkedin_with_image
 from app.services.oauth_service import (
     get_linkedin_auth_url,
     exchange_code_for_token,
@@ -18,6 +18,7 @@ from app.services.jwt_utils import decode_token
 from datetime import datetime, timezone
 from app.models.post import Post
 from app.tasks.linkedin import publish_linkedin_task
+from app.services.storage import save_image_and_get_url
 
 router = APIRouter(prefix="/social", tags=["Social"])
 '''
@@ -87,10 +88,12 @@ def social_status(
 
 @router.post("/publish")
 def publish_post(
-    data: PublishRequest,
+    content: str = Form(...),
+    image: UploadFile | None = File(None),
     user = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
+    
     account = db.query(SocialAccount).filter(
         SocialAccount.user_id == user.id,
         SocialAccount.platform == "linkedin"
@@ -99,33 +102,34 @@ def publish_post(
     if not account:
         raise HTTPException(400, "LinkedIn not connected")
 
+    image_url = save_image_and_get_url(image) if image else None
+
     access_token = account.access_token
     linkedin_user_id = account.platform_user_id
 
-    post_to_linkedin(access_token, linkedin_user_id, data.content)
+    publish_linkedin_with_image(access_token, linkedin_user_id, content, image_url)
 
     return {"status": "published"}
 
 
 
-
-
 @router.post("/schedule/linkedin")
 def schedule_linkedin_post(
-    data: PublishRequest,
+    content: str = Form(...),
+    scheduled_at: datetime = Form(...),
+    image: UploadFile | None = File(None),
     user=Depends(get_current_user),
     db: Session = Depends(get_db),
 ):
-    if not data.scheduled_at:
-        raise HTTPException(status_code=400, detail="scheduled_at required")
+    eta = scheduled_at.astimezone(timezone.utc)
 
-    eta = data.scheduled_at.astimezone(timezone.utc)
+    image_url = save_image_and_get_url(image) if image else None
 
     post = Post(
         user_id=user.id,
         platform="linkedin",
-        content=data.content,
-        media_url=None,
+        content=content,
+        media_url=image_url,
         scheduled_at=eta,
         status="scheduled",
     )
@@ -136,7 +140,7 @@ def schedule_linkedin_post(
 
     publish_linkedin_task.apply_async(args=[post.id], eta=eta)
 
-    return {"status": "scheduled", "run_at": eta}
+    return {"status": "scheduled"}
 
 
 
@@ -258,3 +262,43 @@ def publish_instagram(
 
 
 
+
+@router.post("/schedule/instagram")
+def schedule_instagram_post(
+    caption: str = Form(...),
+    scheduled_at: datetime = Form(...),
+    image: UploadFile = File(...),
+    user=Depends(get_current_user),
+    db: Session = Depends(get_db),
+):
+    account = db.query(SocialAccount).filter(
+        SocialAccount.user_id == user.id,
+        SocialAccount.platform == "instagram"
+    ).first()
+
+    if not account:
+        raise HTTPException(status_code=400, detail="Instagram not connected")
+
+    # 1️⃣ Store image in Cloudinary (same as immediate flow)
+    image_url = save_image_and_get_url(image)
+
+    eta = scheduled_at.astimezone(timezone.utc)
+
+    # 2️⃣ Create DB record
+    post = Post(
+        user_id=user.id,
+        platform="instagram",
+        content=caption,
+        media_url=image_url,
+        scheduled_at=eta,
+        status="scheduled",
+    )
+
+    db.add(post)
+    db.commit()
+    db.refresh(post)
+
+    # 3️⃣ Queue Celery task
+    publish_instagram_task.apply_async(args=[post.id], eta=eta)
+
+    return {"status": "scheduled", "run_at": eta}

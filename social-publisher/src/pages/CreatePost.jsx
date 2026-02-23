@@ -1,6 +1,7 @@
 import React, { useState, useRef } from "react";
 import { createPost } from "../api/posts";
 import { publishInstagram } from "../api/social";
+import API from "../api/api";
 
 export default function CreatePost() {
   const [platform, setPlatform] = useState("linkedin");
@@ -43,35 +44,50 @@ export default function CreatePost() {
     try {
       // LINKEDIN FLOW
       if (platform === "linkedin") {
-        await createPost({
-          platform: "linkedin",
-          content,
-          scheduled_at: scheduledAt || null,
-        });
+        const formData = new FormData();
+        formData.append("content", content);
 
-        alert(scheduledAt ? "LinkedIn post scheduled" : "Posted to LinkedIn");
+      if (image) formData.append("image", image);
+      if (scheduledAt)
+        formData.append("scheduled_at", new Date(scheduledAt).toISOString());
+      
+
+      const url = scheduledAt
+        ? "/social/schedule/linkedin"
+        : "/social/publish";
+      if(scheduledAt) {
+        alert("LinkedIn post scheduled");
+      } else {
+        alert("Posted to LinkedIn");
       }
+      await API.post(url, formData);
+}
 
       // INSTAGRAM FLOW
-      if (platform === "instagram") {
-        if (!image) {
-          alert("Instagram requires an image");
-          setLoading(false);
-          return;
-        }
+if (platform === "instagram") {
+  if (!image) {
+    alert("Instagram requires an image");
+    setLoading(false);
+    return;
+  }
 
-        const formData = new FormData();
-        formData.append("caption", content);
-        formData.append("image", image);
+  const formData = new FormData();
+  formData.append("caption", content);
+  formData.append("image", image);
 
-        if (scheduledAt) {
-          formData.append("scheduled_at", new Date(scheduledAt).toISOString());
-        }
+  const url = scheduledAt
+    ? "/social/schedule/instagram"
+    : "/social/publish/instagram";
 
-        await publishInstagram(formData);
+  if (scheduledAt) {
+    formData.append("scheduled_at", new Date(scheduledAt).toISOString());
+    alert("Instagram post scheduled");
+  } else {
+    alert("Posted to Instagram");
+  }
 
-        alert(scheduledAt ? "Instagram post scheduled" : "Posted to Instagram");
-      }
+  await API.post(url, formData);
+}
 
       // Reset form
       setContent("");

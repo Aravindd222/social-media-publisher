@@ -40,7 +40,7 @@ export default function Dashboard() {
       <h1 className="text-2xl font-semibold mb-6">Dashboard</h1>
 
       {/* Stats */}
-      <div className="grid grid-cols-4 gap-6 mb-6">
+      <div className="grid grid-cols-4 gap-6 mb-6 ">
         <StatCard title="Total Posts" value={stats.total} />
         <StatCard title="Scheduled" value={stats.scheduled} />
         <StatCard title="Published" value={stats.published} />

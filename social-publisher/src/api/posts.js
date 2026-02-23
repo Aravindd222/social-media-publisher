@@ -10,7 +10,8 @@ import API from "./api";
  */
 export async function createPost(payload) {
   try {
-    const res = await API.post("/social/publish", payload);
+    const url = payload.platform === "linkedin" && payload.scheduled_at ? "/social/schedule/linkedin" : "/social/publish";
+    const res = await API.post(url, payload);
     return res.data;
   } catch (err) {
     console.error("Create post failed:", err);

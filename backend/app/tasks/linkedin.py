@@ -2,7 +2,7 @@ from app.celery_app import celery_app
 from app.database import SessionLocal
 from app.models.post import Post
 from app.models.social_account import SocialAccount
-from app.services.publish_service import post_to_linkedin
+from app.services.publish_service import publish_linkedin_with_image
 from datetime import datetime
 
 
@@ -26,10 +26,11 @@ def publish_linkedin_task(self, post_id: int):
         if not account:
             raise Exception("LinkedIn not connected")
 
-        post_to_linkedin(
+        publish_linkedin_with_image(
             token=account.access_token,
             linkedin_user_id=account.platform_user_id,
-            text=post.content
+            text=post.content,
+            image_url=post.media_url
         )
 
         post.status = "published"
