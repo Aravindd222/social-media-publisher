@@ -6,9 +6,8 @@ from app.database import get_db
 from app.models.social_account import SocialAccount
 from app.routers.auth import get_current_user
 from app.schemas.post import PublishRequest, InstagramConnectRequest,InstagramPublishRequest
-import requests
 from sqlalchemy.orm import Session
-from app.services.publish_service import post_to_linkedin, create_media_container,publish_media, wait_for_container, publish_linkedin_with_image
+from app.services.publish_service import create_media_container,publish_media, wait_for_container, publish_linkedin_with_image
 from app.services.oauth_service import (
     get_linkedin_auth_url,
     exchange_code_for_token,
@@ -19,6 +18,7 @@ from datetime import datetime, timezone
 from app.models.post import Post
 from app.tasks.linkedin import publish_linkedin_task
 from app.services.storage import save_image_and_get_url
+from app.celery_app import celery_app
 
 router = APIRouter(prefix="/social", tags=["Social"])
 '''
@@ -65,7 +65,7 @@ def linkedin_callback(code: str, state: str, db: Session = Depends(get_db)):
         account.platform_user_id = linkedin_id
 
     db.commit()
-    return RedirectResponse("http://localhost:5173/dashboard")
+    return RedirectResponse("http://localhost:5173/settings")
 
 @router.get("/status")
 def social_status(
@@ -138,7 +138,14 @@ def schedule_linkedin_post(
     db.commit()
     db.refresh(post)
 
-    publish_linkedin_task.apply_async(args=[post.id], eta=eta)
+    task = publish_linkedin_task.apply_async(
+        args=[post.id],
+        eta=eta
+    )
+
+    post.celery_task_id = task.id
+
+    db.commit()
 
     return {"status": "scheduled"}
 
@@ -181,45 +188,7 @@ from fastapi import UploadFile, File, Form
 from app.services.storage import save_image_and_get_url
 from app.tasks.instagram import publish_instagram_task
 
-from dateutil import parser
 
-
-'''
-@router.post("/publish/instagram")
-def publish_instagram(
-    caption: str = Form(...),
-    image: UploadFile = File(...),
-    scheduled_at: str | None = Form(None),
-    user = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    image_url = save_image_and_get_url(image)
-
-    eta = None
-    if scheduled_at:
-        # EXPECT ISO UTC ONLY
-        eta = parser.isoparse(scheduled_at).astimezone(timezone.utc)
-
-        post = Post(
-            user_id=user.id,
-            platform="instagram",
-            content=caption,
-            media_url=image_url,
-            scheduled_at=eta,
-            status="scheduled" if eta else "pending",
-        )
-
-        db.add(post)
-        db.commit()
-        db.refresh(post)
-        
-        if eta:
-            publish_instagram_task.apply_async(args=[post.id], eta=eta)
-            return {"status": "scheduled", "run_at": eta}
-        publish_instagram_task.delay(post.id)
-        return {"status": "publishing"}
-
-'''
 
 
 @router.post("/publish/instagram")
@@ -292,6 +261,7 @@ def schedule_instagram_post(
         media_url=image_url,
         scheduled_at=eta,
         status="scheduled",
+        celery_task_id=None
     )
 
     db.add(post)
@@ -299,6 +269,101 @@ def schedule_instagram_post(
     db.refresh(post)
 
     # 3️⃣ Queue Celery task
-    publish_instagram_task.apply_async(args=[post.id], eta=eta)
+    task = publish_instagram_task.apply_async(
+        args=[post.id],
+        eta=eta
+    )
+
+    post.celery_task_id = task.id
+
+    db.commit()
 
     return {"status": "scheduled", "run_at": eta}
+
+#update scheduled post with new content, time, or image
+@router.put("/{post_id}")
+def edit_scheduled_post(
+    post_id: int,
+    content: str = Form(...),
+    scheduled_at: datetime = Form(...),
+    image: UploadFile | None = File(None),   # ← NEW
+    db: Session = Depends(get_db),
+    user = Depends(get_current_user)
+):
+
+    post = db.query(Post).filter(
+        Post.id == post_id,
+        Post.user_id == user.id
+    ).first()
+
+    if not post:
+        raise HTTPException(404, "Post not found")
+
+    if post.status != "scheduled":
+        raise HTTPException(400, "Only scheduled posts can be edited")
+
+    # 1. revoke old celery task
+    if post.celery_task_id:
+        celery_app.control.revoke(post.celery_task_id)
+
+    # 2. upload new image if provided
+    if image:
+        new_image_url = save_image_and_get_url(image)
+        post.media_url = new_image_url
+
+    # 3. update content and schedule
+    eta = scheduled_at.astimezone(timezone.utc)
+
+    post.content = content
+    post.scheduled_at = eta
+    post.status = "scheduled"
+
+    # 4. reschedule celery task
+    if post.platform == "linkedin":
+
+        task = publish_linkedin_task.apply_async(
+            args=[post.id],
+            eta=eta
+        )
+
+    elif post.platform == "instagram":
+
+        task = publish_instagram_task.apply_async(
+            args=[post.id],
+            eta=eta
+        )
+
+    else:
+        raise HTTPException(400, "Unsupported platform")
+
+    # 5. save new task id
+    post.celery_task_id = task.id
+
+    db.commit()
+
+    return {
+        "status": "rescheduled",
+        "post_id": post.id,
+        "new_media_url": post.media_url
+    }
+
+
+
+@router.delete("/account/{platform}")
+def delete_social_account(
+    platform: str,
+    user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    account = db.query(SocialAccount).filter(
+        SocialAccount.user_id == user.id,
+        SocialAccount.platform == platform
+    ).first()
+
+    if not account:
+        raise HTTPException(404, f"{platform} account not found")
+
+    db.delete(account)
+    db.commit()
+
+    return {"status": f"{platform} disconnected"}

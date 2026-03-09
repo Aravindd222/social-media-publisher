@@ -27,14 +27,15 @@ export async function createPost(payload) {
 
 
 export const getMyPosts = async () => {
-  const res = await API.get("/posts/");
+  const res = await API.get("/posts/me");
   return res.data;
 };
 
 // Only scheduled
 export const getScheduledPosts = async () => {
-  const res = await API.get("/posts/me?status=pending");
-  return res.data;
+  return (await API.get("/posts/me", {
+    params: { status: "scheduled" }
+  })).data;
 };
 
 // History (published + failed)
@@ -55,3 +56,25 @@ export const getDashboardSummary = async () => {
   return res.data;
 };
 
+
+// get single post
+export const getPostById = async (postId) => {
+  const res = await API.get(`/posts/${postId}`);
+  return res.data;
+};
+
+// edit scheduled post (IMPORTANT: social endpoint)
+export const editScheduledPost = async (postId, formData) => {
+  const res = await API.put(`/social/${postId}`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return res.data;
+};
+
+// cancel scheduled post
+export const cancelScheduledPost = async (postId) => {
+  const res = await API.delete(`/posts/${postId}`);
+  return res.data;
+};

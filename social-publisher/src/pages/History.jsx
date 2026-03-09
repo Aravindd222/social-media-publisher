@@ -33,7 +33,13 @@ export default function History() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold mb-6">Publishing History</h1>
+      <div className="rounded-t-xl gradient-info px-6 py-4 bg-indigo-600">
+        <h1 className="text-lg font-semibold text-white">Publishing History</h1>
+        <p className="text-sm text-white/70">
+          Record of all published and attempted posts
+        </p>
+      </div>
+      
       <Table columns={columns} data={data} />
     </div>
   );

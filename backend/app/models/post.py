@@ -13,6 +13,7 @@ class Post(Base):
     media_url = Column(String, nullable=True)
 
     scheduled_at = Column(DateTime(timezone=True), nullable=True)
+    celery_task_id = Column(String, nullable=True)
     status = Column(String,nullable=False,default="pending")
 
     published_at = Column(DateTime(timezone=True), nullable=True)

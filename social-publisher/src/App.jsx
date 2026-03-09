@@ -9,6 +9,7 @@ import Scheduled from "./pages/Scheduled";
 import History from "./pages/History";
 import Settings from "./pages/Settings";
 import Login from "./pages/Login";
+import EditScheduled from "./pages/EditScheduled";
 // ❌ Register no longer needed (login screen already handles register)
 
 export default function App() {
@@ -39,6 +40,7 @@ export default function App() {
             <Route path="/" element={<Dashboard />} />
             <Route path="/create" element={<CreatePost />} />
             <Route path="/scheduled" element={<Scheduled />} />
+            <Route path="/scheduled/:id/edit" element={<EditScheduled />} />
             <Route path="/history" element={<History />} />
             <Route path="/settings" element={<Settings />} />
           </Route>

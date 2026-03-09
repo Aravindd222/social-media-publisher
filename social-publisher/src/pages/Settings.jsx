@@ -1,176 +1,400 @@
 import { useState, useEffect } from "react";
+import {
+  TrashIcon,
+  PencilIcon,
+  XMarkIcon,
+  CheckIcon
+} from "@heroicons/react/24/outline";
 import { connectInstagram } from "../api/social";
 import { getSocialStatus } from "../api/posts";
+import { deleteSocialAccount } from "../api/social";
 
 export default function Settings() {
+
   const [linkedinConnected, setLinkedinConnected] = useState(false);
   const [instagramConnected, setInstagramConnected] = useState(false);
+
+  const [linkedinUsername, setLinkedinUsername] = useState("john-doe");
+  const [instagramUsername, setInstagramUsername] = useState("@johndoe");
+
+  const [editingPlatform, setEditingPlatform] = useState(null);
+  const [editValue, setEditValue] = useState("");
+
   const [showInstagramForm, setShowInstagramForm] = useState(false);
 
-  // Instagram form states (moved here from ConnectInstagram.jsx)
   const [accessToken, setAccessToken] = useState("");
   const [userId, setUserId] = useState("");
+
   const [loading, setLoading] = useState(false);
 
-  // Load connection status
+
+  /*
+  LOAD STATUS
+  */
   useEffect(() => {
+
     getSocialStatus()
       .then((data) => {
+
         setLinkedinConnected(data.linkedin_connected);
         setInstagramConnected(data.instagram_connected);
+
       })
-      .catch((err) => console.error("Failed to fetch social status", err));
+      .catch(console.error);
+
   }, []);
 
-  // LinkedIn OAuth redirect
+
+
+  /*
+  LINKEDIN CONNECT
+  */
   function connectLinkedIn() {
+
     const token = localStorage.getItem("token");
 
     window.location.href =
       `http://localhost:8000/social/connect/linkedin?token=${token}`;
-  }
 
-  // Instagram connect handler (same logic you already wrote)
+  }
+  
+
+
+
+  /*
+  INSTAGRAM CONNECT
+  */
   async function handleInstagramSubmit(e) {
+
     e.preventDefault();
 
-    if (!accessToken.trim() || !userId.trim()) {
-      alert("Instagram Access Token and User ID are required");
+    if (!accessToken || !userId) {
+      alert("Instagram Access Token and User ID required");
       return;
     }
 
     setLoading(true);
+
     try {
+
       await connectInstagram({
         access_token: accessToken,
         ig_user_id: userId,
       });
 
-      setAccessToken("");
-      setUserId("");
       setInstagramConnected(true);
       setShowInstagramForm(false);
 
-      alert("Instagram connected successfully");
-    } catch (err) {
-      console.error(err);
-      alert("Invalid Instagram credentials");
+      alert("Instagram connected");
+
+    } catch {
+
+      alert("Invalid credentials");
+
     } finally {
+
       setLoading(false);
+
     }
+
   }
 
-  return (
-    <div className="max-w-3xl space-y-6">
-      <h1 className="text-2xl font-semibold">Settings</h1>
 
-      {/* Platform Connections */}
-      <div className="bg-white p-6 rounded-xl shadow space-y-4">
-        <h2 className="font-semibold">Platform Settings</h2>
 
-        {/* LinkedIn */}
-        <div className="flex justify-between items-center border p-4 rounded-lg">
-          <div>
-            <p className="font-medium">LinkedIn</p>
-            <p className="text-sm text-gray-500">Connect via OAuth</p>
-          </div>
+  /*
+  START EDIT
+  */
+function startEdit(platform) {
 
-          {linkedinConnected ? (
-          <div className="flex items-center gap-2 text-green-600 font-medium">
-          <span className="relative flex h-3 w-3">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
-          <span className="relative inline-flex h-3 w-3 rounded-full bg-green-600"></span>
-          </span>
-          <span>Connected</span>
-          </div>
-            ) : (
+  setEditingPlatform(platform);
 
+  if (platform === "instagram") {
+    setShowInstagramForm(true);
+  }
+
+  if (platform === "linkedin") {
+    connectLinkedIn(); // OAuth reconnect
+  }
+
+}
+
+
+
+  /*
+  CANCEL EDIT
+  */
+  function cancelEdit() {
+
+    setEditingPlatform(null);
+    setEditValue("");
+
+  }
+
+
+
+  /*
+  SAVE EDIT
+  */
+ async function saveEdit(platform) {
+
+  if (platform === "linkedin") {
+
+    // redirect to OAuth reconnect
+    connectLinkedIn();
+    return;
+
+  }
+
+  if (platform === "instagram") {
+
+    try {
+
+      await connectInstagram({
+        access_token: accessToken,
+        ig_user_id: userId,
+      });
+
+      setInstagramUsername(userId);
+      setEditingPlatform(null);
+      alert("Instagram updated");
+
+    } catch {
+
+      alert("Failed to update Instagram");
+
+    }
+
+  }
+
+}
+
+
+
+  /*
+  DELETE ACCOUNT
+  */
+ 
+
+async function removeAccount(platform) {
+
+  const confirmDelete = window.confirm(
+    `Remove ${platform} account?`
+  );
+
+  if (!confirmDelete) return;
+  
+
+  try {
+
+    await deleteSocialAccount(platform);
+
+    if (platform === "linkedin") {
+      setLinkedinConnected(false);
+      setLinkedinUsername("");
+    }
+
+   if (platform === "instagram") {
+  setInstagramConnected(false);
+  setInstagramUsername("");
+}
+
+    alert(`${platform} account removed`);
+
+  } catch (err) {
+
+    alert("Failed to remove account");
+
+  }
+
+}
+
+
+
+  /*
+  PLATFORM CARD COMPONENT
+  */
+  function PlatformCard({
+    platform,
+    connected,
+    username,
+    connectHandler,
+    subtitle
+  }) {
+
+    const editing = editingPlatform === platform;
+
+    return (
+
+      <div className="flex justify-between items-center border rounded-xl p-4 hover:shadow-sm transition  flex-justify-center">
+
+        <div>
+
+          <p className="font-semibold capitalize">
+            {platform}
+          </p>
+
+          <p className="text-sm text-gray-500">
+            {subtitle}
+          </p>
+
+
+          {connected && !editing && (
+            <p className="text-xs text-gray-400 mt-1">
+              Account: {username}
+            </p>
+          )}
+
+
+
+        </div>
+
+
+
+        <div className="flex gap-2">
+
+          {connected ? (
+            <>
+              <button
+                onClick={()=>startEdit(platform)}
+                className="border p-2 rounded hover:bg-gray-100"
+              >
+                <PencilIcon className="h-4 w-4"/>
+              </button>
+
+              <button
+                onClick={()=>removeAccount(platform)}
+                className="border p-2 rounded text-red-600 hover:bg-red-50"
+              >
+                <TrashIcon className="h-4 w-4"/>
+              </button>
+            </>
+          ) : (
             <button
-              onClick={connectLinkedIn}
+              onClick={connectHandler}
               className="bg-indigo-600 text-white px-4 py-2 rounded-lg"
             >
               Connect
             </button>
           )}
+
         </div>
 
-        {/* Instagram */}
-        <div className="border p-4 rounded-lg space-y-3">
-          <div className="flex justify-between items-center">
-            <div>
-              <p className="font-medium">Instagram</p>
-              <p className="text-sm text-gray-500">
-                Connect using Access Token
-              </p>
-            </div>
-
-            {!instagramConnected && (
-              <button
-                onClick={() => setShowInstagramForm(!showInstagramForm)}
-                className="bg-indigo-600 text-white px-4 py-2 rounded-lg"
-              >
-                {showInstagramForm ? "Cancel" : "Connect"}
-              </button>
-            )}
-
-            {instagramConnected && (
-              <div className="flex items-center gap-2 text-green-600 font-medium">
-                <span className="relative flex h-3 w-3">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-green-400 opacity-75"></span>
-                  <span className="relative inline-flex h-3 w-3 rounded-full bg-green-600"></span>
-                </span>
-                <span>Connected</span>
-              </div>
-            )}
-          </div>
-
-          {/* Instagram Inline Form */}
-          {showInstagramForm && !instagramConnected && (
-            <form onSubmit={handleInstagramSubmit} className="space-y-3">
-              <input
-                type="text"
-                placeholder="Instagram User ID"
-                className="w-full border p-2 rounded"
-                value={userId}
-                onChange={(e) => setUserId(e.target.value)}
-              />
-
-              <input
-                type="text"
-                placeholder="Instagram Access Token"
-                className="w-full border p-2 rounded"
-                value={accessToken}
-                onChange={(e) => setAccessToken(e.target.value)}
-              />
-
-              <button
-                disabled={loading}
-                className="bg-pink-600 text-white px-4 py-2 rounded"
-              >
-                {loading ? "Connecting..." : "Connect Instagram"}
-              </button>
-            </form>
-          )}
-        </div>
       </div>
 
-      {/* Profile */}
-      <div className="bg-white p-6 rounded-xl shadow space-y-4">
-        <h2 className="font-semibold">Profile</h2>
+    );
+
+  }
+
+
+
+  return (
+
+    <div className="max-w-2xl mx-auto space-y-6 ">
+
+
+      {/* PLATFORM SETTINGS */}
+
+      <div className="bg-white rounded-xl shadow overflow-hidden">
+
+        <div className="bg-indigo-600 text-white px-6 py-4">
+
+          <h2 className="font-semibold text-lg">
+            Platform Settings
+          </h2>
+          <p className="text-sm opacity-80">
+            Manage your social media connections
+          </p>
+
+        </div>
+
+
+        <div className="p-6 space-y-4">
+
+          <PlatformCard
+            platform="linkedin"
+            connected={linkedinConnected}
+            username={linkedinUsername}
+            connectHandler={connectLinkedIn}
+            subtitle="Connect via OAuth 2.0"
+          />
+
+          <PlatformCard
+            platform="instagram"
+            connected={instagramConnected}
+            username={instagramUsername}
+            connectHandler={()=>setShowInstagramForm(true)}
+            subtitle="Connect via Graph API"
+          />
+
+
+          {/* Instagram form */}
+
+          {showInstagramForm && (
+
+            <form
+              onSubmit={handleInstagramSubmit}
+              className="space-y-2"
+            >
+
+              <input
+                placeholder="Instagram User ID"
+                value={userId}
+                onChange={(e)=>setUserId(e.target.value)}
+                className="border p-2 w-full rounded"
+              />
+
+              <input
+                placeholder="Instagram Access Token"
+                value={accessToken}
+                onChange={(e)=>setAccessToken(e.target.value)}
+                className="border p-2 w-full rounded"
+              />
+
+              <button
+                className="bg-pink-600 text-white px-4 py-2 rounded"
+              >
+                {instagramConnected ? "Update Instagram" : "Connect Instagram"}
+              </button>
+
+            </form>
+
+          )}
+
+        </div>
+
+      </div>
+
+
+
+      {/* PROFILE */}
+
+      <div className="bg-white rounded-xl shadow p-6 space-y-4">
+
+        <h2 className="font-semibold text-lg">
+          Profile
+        </h2>
 
         <input
-          className="w-full border p-3 rounded-lg"
+          className="border p-3 w-full rounded"
           defaultValue="user@example.com"
         />
+
         <input
-          className="w-full border p-3 rounded-lg"
+          className="border p-3 w-full rounded"
           defaultValue="Marketing Team"
         />
 
-        <button className="bg-indigo-600 text-white px-6 py-2 rounded-lg">
+        <button
+          className="bg-indigo-600 text-white px-6 py-2 rounded"
+        >
           Save Changes
         </button>
+
       </div>
+
+
     </div>
+
   );
+
 }

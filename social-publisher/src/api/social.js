@@ -21,3 +21,8 @@ export async function publishInstagram(formData) {
   });
   return res.data;
 }
+
+export async function deleteSocialAccount(platform) {
+  const res = await API.delete(`/social/account/${platform}`);
+  return res.data;
+}

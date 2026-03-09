@@ -1,8 +1,10 @@
-import { Outlet } from "react-router-dom";
+import { Outlet, useLocation } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import Topbar from "../components/Topbar";
 
 export default function DashboardLayout({ loggedIn, setLoggedIn }) {
+
+  const location = useLocation();
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -11,15 +13,22 @@ export default function DashboardLayout({ loggedIn, setLoggedIn }) {
 
   return (
     <div className="flex min-h-screen bg-[#f5f7fb]">
+
       <Sidebar />
 
       <div className="flex-1 flex flex-col">
+
         <Topbar loggedIn={loggedIn} onLogout={handleLogout} />
 
-        <main className="flex-1 p-8">
+        <main
+          key={location.pathname}
+          className="flex-1 p-8 animate-pageEnter"
+        >
           <Outlet />
         </main>
+
       </div>
+
     </div>
   );
 }
