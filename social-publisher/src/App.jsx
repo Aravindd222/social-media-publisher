@@ -15,12 +15,18 @@ import EditScheduled from "./pages/EditScheduled";
 export default function App() {
   // ✅ login state
   const [loggedIn, setLoggedIn] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   // ✅ check token when app loads (important for refresh)
   useEffect(() => {
     const token = localStorage.getItem("token");
     setLoggedIn(!!token);
+    setLoading(false);
   }, []);
+
+  if (loading){
+    return <div className="flex h-screen items-center justify-center">Loading...</div>
+  }
 
   // ✅ called from Login.jsx after successful login
   function handleLogin() {
@@ -46,7 +52,7 @@ export default function App() {
           </Route>
         ) : (
           // If user not logged in → redirect everything to login
-          <Route path="*" element={<Navigate to="/login" />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
         )}
 
       </Routes>

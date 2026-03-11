@@ -36,7 +36,7 @@ uvicorn app.main:app --reload
 ### **Start Frontend**
 
 ```bash
-cd frontend
+cd social-publisher
 npm install
 npm run dev
 ```

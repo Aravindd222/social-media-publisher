@@ -126,7 +126,7 @@ const Scheduled = () => {
                       onClick={() =>
                         navigate(`/scheduled/${post.id}/edit`)
                       }
-                      className="rounded-lg px-3 py-1.5 text-xs font-medium text-primary hover:bg-primary/10 transition text-blue-700"
+                      className="rounded-lg px-3 py-1.5 text-l font-medium text-primary hover:bg-primary/10 transition text-blue-700"
                     >
                       Edit
                     </button>
@@ -135,7 +135,7 @@ const Scheduled = () => {
                     <button
                       type="button"
                       onClick={() => handleCancel(post.id)}
-                      className="rounded-lg px-3 py-1.5 text-xs font-medium text-destructive hover:bg-destructive/10 transition text-red-500"
+                      className="rounded-lg px-3 py-1.5 text-l font-medium text-destructive hover:bg-destructive/10 transition text-red-500"
                     >
                       Cancel
                     </button>

@@ -65,7 +65,7 @@ def linkedin_callback(code: str, state: str, db: Session = Depends(get_db)):
         account.platform_user_id = linkedin_id
 
     db.commit()
-    return RedirectResponse("http://localhost:5173/settings")
+    return RedirectResponse("http://localhost:5173/settings", status_code=303)
 
 @router.get("/status")
 def social_status(
