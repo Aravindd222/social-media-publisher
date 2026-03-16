@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     CLOUDINARY_API_KEY: str
     CLOUDINARY_API_SECRET: str
 
-    REDIS_BROKER_URL: str = "redis://localhost:6379/0"
+    REDIS_BROKER_URL: str
 
     class Config:
         env_file = ".env"

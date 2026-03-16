@@ -1,9 +1,10 @@
 from celery import Celery
+from app.config import settings
 
 celery_app = Celery(
     "social_publisher",
-    broker="redis://localhost:6379/0",
-    backend="redis://localhost:6379/0",
+    broker=settings.REDIS_BROKER_URL,
+    backend=settings.REDIS_BROKER_URL,
     include=['app.tasks.instagram','app.tasks.linkedin']
 )
 

@@ -1,0 +1,76 @@
+
+
+services:
+  migration:
+    build: ./backend
+    container_name: alembic_migration
+    command: sh -c "sleep 10 && alembic upgrade head"
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - postgres
+    volumes:
+      - ./backend:/app
+
+  backend:
+    build: ./backend
+    container_name: social_backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - postgres
+      - redis
+      - migration
+    volumes:
+      - ./backend:/app
+
+  worker:
+    build: ./backend
+    container_name: celery_worker
+    command: celery -A app.celery_app worker --loglevel=info
+    env_file:
+      - ./backend/.env
+    depends_on:
+      - redis
+      - backend
+    volumes:
+      - ./backend:/app
+
+  redis:
+    image: redis:7
+    container_name: redis
+    ports:
+      - "6379:6379"
+
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgre123
+      POSTGRES_DB: social_publisher_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  frontend:
+    build: ./social-publisher
+    container_name: social_frontend
+    ports:
+      - "5173:5173"
+    depends_on:
+      - backend
+    volumes:
+      - ./social-publisher:/app
+      - /app/node_modules
+
+volumes:
+  postgres_data:

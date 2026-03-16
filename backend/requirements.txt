@@ -9,7 +9,8 @@ alembic
 
 # Authentication & Security
 python-jose
-passlib[bcrypt]
+bcrypt==3.2.2
+passlib[bcrypt]==1.7.4
 
 # Environment variables
 python-dotenv
@@ -26,3 +27,6 @@ redis
 
 pydantic
 pydantic-settings
+
+cloudinary
+email-validator
