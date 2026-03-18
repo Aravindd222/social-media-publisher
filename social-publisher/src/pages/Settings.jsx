@@ -51,10 +51,11 @@ export default function Settings() {
   */
   function connectLinkedIn() {
 
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("token") || "http://localhost:8000";
+    const API_URL = import.meta.env.VITE_API_URL; 
 
     window.location.href =
-      `http://localhost:8000/social/connect/linkedin?token=${token}`;
+      `${API_URL}/social/connect/linkedin?token=${token}`;
 
   }
   

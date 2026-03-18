@@ -43,7 +43,12 @@ def connect_linkedin(token: str):
 @router.get("/callback/linkedin")
 def linkedin_callback(code: str, state: str, db: Session = Depends(get_db)):
     user_id = decode_token(state)
-    token = exchange_code_for_token(code)
+    if not user_id:
+        raise HTTPException(400, "Invalid state")
+    try:
+        token = exchange_code_for_token(code)
+    except Exception:
+        raise HTTPException(400, "LinkedIn token exchange failed")
 
     linkedin_id = get_linkedin_profile_id(token)
 
@@ -65,7 +70,7 @@ def linkedin_callback(code: str, state: str, db: Session = Depends(get_db)):
         account.platform_user_id = linkedin_id
 
     db.commit()
-    return RedirectResponse("http://localhost:5173/settings", status_code=303)
+    return RedirectResponse(f"{settings.FRONTEND_URL}/settings", status_code=303)
 
 @router.get("/status")
 def social_status(
@@ -184,7 +189,7 @@ def connect_instagram(
     return {"status":"instagram connected"}
 
 
-from fastapi import UploadFile, File, Form
+
 from app.services.storage import save_image_and_get_url
 from app.tasks.instagram import publish_instagram_task
 
