@@ -51,6 +51,8 @@ services:
     image: aravindaravind123/social-media-publisher-frontend:latest
     ports:
       - "5173:5173"
+    env_file:
+      - ./social-publisher/.env
     depends_on:
       - backend
   
