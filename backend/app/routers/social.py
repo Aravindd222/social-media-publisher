@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Form
 from fastapi.responses import RedirectResponse
 from app.config import settings
 import urllib.parse
+from typing import Optional
 from app.database import get_db
 from app.models.social_account import SocialAccount
 from app.routers.auth import get_current_user
@@ -41,7 +42,23 @@ def connect_linkedin(token: str):
 
 
 @router.get("/callback/linkedin")
-def linkedin_callback(code: str, state: str, db: Session = Depends(get_db)):
+@router.get("/callback/linkedin")
+def linkedin_callback(
+    code: Optional[str] = None,
+    state: Optional[str] = None,
+    error: Optional[str] = None,
+    error_description: Optional[str] = None,
+    db: Session = Depends(get_db)
+):
+    if error:
+        return RedirectResponse(
+            f"{settings.FRONTEND_URL}/settings?"
+            f"error={error_description or error}",
+            status_code=303
+    )
+    if not code:
+        raise HTTPException(400, "Authorization code missing")
+    
     user_id = decode_token(state)
     if not user_id:
         raise HTTPException(400, "Invalid state")
