@@ -8,7 +8,10 @@ app = FastAPI(title="Social Media Publisher Demo")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  
+    allow_origins=[
+        "http://localhost:5173",
+        "https://social-frontend-q0te.onrender.com",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
