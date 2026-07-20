@@ -41,7 +41,7 @@ def connect_linkedin(token: str):
     return RedirectResponse(auth_url)
 
 
-@router.get("/callback/linkedin")
+
 @router.get("/callback/linkedin")
 def linkedin_callback(
     code: Optional[str] = None,
